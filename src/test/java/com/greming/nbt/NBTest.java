@@ -32,8 +32,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
 
 import com.greming.io.*;
-import java.io.InputStream;
-import java.net.URL;
 
 
 public class NBTest
@@ -45,7 +43,6 @@ public class NBTest
         test(ByteBufferType.VarInt);
         test(ByteBufferType.LittleEndian);
         test(ByteBufferType.BigEndian);
-        testOnline();
     }
     
     protected void test(ByteBufferType bbtype)
@@ -91,36 +88,6 @@ public class NBTest
         Assertions.assertArrayEquals(intarraytag, compound.getValueOf("IntArrayTag", IntArrayTag.DEFAULT_VALUE));
         Assertions.assertArrayEquals(longarraytag, compound.getValueOf("LongArrayTag", LongArrayTag.DEFAULT_VALUE));
         Assertions.assertEquals(stringtag, compound.getValueOf("StringTag", StringTag.DEFAULT_VALUE));
-    }
-    
-    protected void testOnline()
-    {
-        byte[] original = new byte[0];
-        
-        try(InputStream stream = new URL("https://raw.github.com/Dav1dde/nbd/master/test/bigtest.nbt").openStream()) {
-            original = stream.readAllBytes();
-        } catch (Throwable exception) {
-            exception.printStackTrace();
-            return;
-        }
-        
-        ByteBuffer buffer = new ByteBuffer(NBTag.decodeGZip(original));
-            
-        ByteBufferReader reader = new ByteBufferReader(buffer);
-        NamedTag<CompoundTag> namedtag = NBTag.getRoot(reader);
-        testRoot(namedtag);
-            
-            
-        ByteBuffer encoded = new ByteBuffer(64);
-        ByteBufferWriter writer = new ByteBufferWriter(encoded);
-        NBTag.encodeRoot(namedtag, writer);
-        
-        encoded.setBytes(NBTag.decodeGZip(NBTag.encodeGZip(writer.slice())));
-
-        reader = new ByteBufferReader(encoded);
-        testRoot(NBTag.getRoot(reader));
-        
-        Assertions.assertEquals(buffer.getBytes().length, encoded.getBytes().length);
     }
     
     
